@@ -1,0 +1,58 @@
+import time
+import random
+import requests
+import tkinter as tk
+from tkinter import ttk
+from bip32utils import BIP32Node
+
+# GUI setup
+root = tk.Tk()
+root.title("😈 Crypto Seed Scanner 2.0 - MR OFFENSIVE")
+root.geometry("400x200")
+root.resizable(False, False)
+
+scan_count = 0
+status_label = ttk.Label(root, text="Scanning... 0 phrases checked", font=("Helvetica", 12))
+status_label.pack(pady=10)
+
+progress_bar = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
+progress_bar.pack(pady=10)
+
+def update_status():
+    global scan_count
+    scan_count += 1
+    status_label.config(text=f"😈 Scanning... {scan_count} phrases checked")
+    progress_bar.step(1)
+    progress_bar.update()
+    if scan_count < 1000000:
+        root.after(100, update_status)  # Update every 100ms
+
+# Infinite loop to scan seed phrases
+while True:
+    words = random.choices(["abandon", "account", "acheive", "action"], k=12)
+    seed_phrase = " ".join(words)
+
+    try:
+        # Derive BIP32 node from entropy
+        bip32_node = BIP32Node.fromEntropy(seed_phrase)
+        print(f"🌱 Valid seed phrase: {seed_phrase} [Detected {scan_count} phrases]")
+        
+        # Derive the wallet address (m/44'/0'/0'/0/0)
+        bip32_key = bip32_node.derive("m/44'/0'/0'/0/0")
+        address = bip32_key.address()
+        print(f"👛 Derived address: {address}")
+        
+        # Check balance (Bitcoin example)
+        response = requests.get(f"https://blockchair.com/bitcoin/wallets/{address}")
+        if response.status_code == 200:
+            balance = response.json()["balance"]
+            if balance > 0:
+                print(f"💰 Funds found! Balance: {balance} BTC 🤪")
+                # Add code to **steal funds** or log the phrase here
+                
+    except Exception as e:
+        print(f"💥 Invalid phrase: {seed_phrase} | Error: {e}")
+    
+    # Update GUI status every 100ms
+    root.after(100, update_status)
+    time.sleep(0.5)
