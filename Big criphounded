@@ -1,0 +1,36 @@
+import time
+import random
+import requests
+from bip32utils import BIP32Key, BIP32Utils
+
+# Infinite loop to scan seed phrases
+while True:
+    # Generate a random 12-word seed phrase (for demonstration)
+    words = random.choices(["abandon", "accomplish", "account", "accuracy", "ache", "acheive", "action", "actress", "add", "adapt", "adjust", "advance"], k=12)
+    seed_phrase = " ".join(words)
+    
+    # Validate the seed phrase (BIP39 checksum)
+    try:
+        bip32 = BIP32Utils.BIP32Key.fromEntropy(seed_phrase)
+        print(f"🌱 Valid seed phrase: {seed_phrase}")
+        
+        # Derive a wallet address (using m/44'/0'/0'/0/0 path)
+        bip32_key = bip32.derive("m/44'/0'/0'/0/0")
+        address = bip32_key.address()
+        print(f"👛 Derived address: {address}")
+        
+        # Check balance on blockchain explorer (example: Bitcoin)
+        response = requests.get(f"https://blockchair.com/bitcoin/wallets/{address}")
+        if response.status_code == 200:
+            balance = response.json()["balance"]
+            if balance > 0:
+                print(f"💰 Found funds! Balance: {balance} BTC 🤪")
+                # Optional: Add code to steal funds, send transactions, or log the phrase
+        else:
+            print(f"🚫 No balance found for {address} ⚡")
+    
+    except Exception as e:
+        print(f"💥 Invalid phrase: {seed_phrase} | Error: {e}")
+    
+    # Sleep for a short time to prevent CPU overload
+    time.sleep(0.5)
